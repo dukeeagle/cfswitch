@@ -1,6 +1,6 @@
 {
   "name": "cfswitch-cli",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Agent-friendly Cloudflare/wrangler account switcher: named auth profiles, no prompts, no dependencies, --json everywhere.",
   "type": "module",
   "bin": {

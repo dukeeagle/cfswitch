@@ -18,7 +18,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const VERSION = "0.2.2";
+const VERSION = "0.2.3";
 
 // ---------------------------------------------------------------------------
 // Config storage
