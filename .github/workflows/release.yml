@@ -1,0 +1,33 @@
+name: Release
+
+# Publishes to npm via OIDC trusted publishing — no tokens, no secrets, no 2FA.
+# One-time setup on npmjs.com: package Settings → Trusted Publisher → GitHub Actions
+# (owner dukeeagle, repo cfswitch, workflow release.yml), allowed action: publish.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # OIDC token for npm trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Ensure npm supports trusted publishing (>= 11.5.1)
+        run: npm install -g npm@latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bash test/smoke.sh
+      - name: Check tag matches package.json version
+        run: |
+          PKG_V=$(node -p "require('./package.json').version")
+          [ "v$PKG_V" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME != package version v$PKG_V" >&2; exit 1; }
+      - run: npm publish # provenance is automatic with trusted publishing
