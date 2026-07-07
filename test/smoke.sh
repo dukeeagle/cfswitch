@@ -18,7 +18,7 @@ printf 'tok-beta' | $CLI add beta --token-stdin | grep -q 'added profile "beta"'
 CFSWITCH_TOKEN=tok-gamma $CLI add gamma | grep -q 'added profile "gamma"' || fail "add gamma env"
 
 # config file permissions
-perms=$(stat -f '%Lp' "$CFSWITCH_CONFIG_DIR/profiles.json" 2>/dev/null || stat -c '%a' "$CFSWITCH_CONFIG_DIR/profiles.json")
+perms=$(stat -c '%a' "$CFSWITCH_CONFIG_DIR/profiles.json" 2>/dev/null || stat -f '%Lp' "$CFSWITCH_CONFIG_DIR/profiles.json")
 [ "$perms" = "600" ] || fail "profiles.json perms ($perms)"
 
 # list: plain and json; no token values anywhere
