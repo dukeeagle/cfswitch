@@ -7,16 +7,16 @@ Switch Cloudflare / wrangler auth between multiple accounts — built for **AI a
 Design rules:
 
 - **Never prompts.** Every command is fully non-interactive — safe to run from any agent, script, or CI job.
-- **Zero runtime dependencies.** One bundled file, Node ≥ 18. `npx cfswitch` just works.
+- **Zero runtime dependencies.** One bundled file, Node ≥ 18. `npx cfswitch-cli` just works.
 - **`--json` on every read command**, clean exit codes, errors on stderr.
 - **Tokens are never printed** except by explicit `cfswitch env`.
 
 ## Install
 
 ```bash
-npm install -g cfswitch     # or: bun add -g cfswitch
+npm install -g cfswitch-cli   # installs the `cfswitch` command (or: bun add -g cfswitch-cli)
 # or zero-install:
-npx cfswitch help
+npx cfswitch-cli help
 ```
 
 ## Quick start
@@ -85,9 +85,16 @@ If you really want OAuth (e.g. no permission to create API tokens), `cfswitch lo
 
 ## For AI agents
 
-Two options:
+Three options:
 
-**Install the skill** (recommended) — ships in [`skills/cfswitch/`](./skills/cfswitch/SKILL.md) and teaches Claude Code, Codex, and Cursor when and how to use cfswitch:
+**Claude Code plugin** (easiest for Claude Code) — this repo is its own plugin marketplace:
+
+```
+/plugin marketplace add dukeeagle/cfswitch
+/plugin install cfswitch@cfswitch
+```
+
+**Install the skill** (works for Claude Code, Codex, and Cursor at once) — ships in [`skills/cfswitch/`](./skills/cfswitch/SKILL.md) and teaches Claude Code, Codex, and Cursor when and how to use cfswitch:
 
 ```bash
 ./install-skill.sh           # symlinks into ~/.agents/skills (hub, read by Cursor),
@@ -98,7 +105,7 @@ Two options:
 
 It never clobbers an existing real directory at any of those paths, and re-running is idempotent.
 
-**Or just the contract** — [AGENTS.md](./AGENTS.md) is a compact, copy-pasteable ruleset; drop it into your project or point your agent at `npx cfswitch help`, which is written to be sufficient on its own.
+**Or just the contract** — [AGENTS.md](./AGENTS.md) is a compact, copy-pasteable ruleset; drop it into your project or point your agent at `npx cfswitch-cli help`, which is written to be sufficient on its own.
 
 ## Prior art
 

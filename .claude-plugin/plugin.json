@@ -1,0 +1,11 @@
+{
+  "name": "cfswitch",
+  "description": "Switch Cloudflare/wrangler auth between multiple accounts — agent-first CLI with named token profiles",
+  "version": "0.2.0",
+  "author": {
+    "name": "Luke Igel"
+  },
+  "repository": "https://github.com/dukeeagle/cfswitch",
+  "homepage": "https://github.com/dukeeagle/cfswitch",
+  "license": "MIT"
+}

@@ -5,7 +5,7 @@ description: Switch Cloudflare/wrangler auth between multiple Cloudflare account
 
 # cfswitch — multi-account Cloudflare auth
 
-`cfswitch` is a global CLI that stores named Cloudflare auth profiles and injects them per-process as `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` (which wrangler honors over any OAuth login). It never prompts; every command is non-interactive, with `--json` variants and real exit codes. If it's not installed: `npm install -g cfswitch`.
+`cfswitch` is a global CLI that stores named Cloudflare auth profiles and injects them per-process as `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` (which wrangler honors over any OAuth login). It never prompts; every command is non-interactive, with `--json` variants and real exit codes. If it's not installed: `npm install -g cfswitch-cli`.
 
 ## Rules
 
