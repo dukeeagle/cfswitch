@@ -1,0 +1,46 @@
+{
+  "name": "cfswitch",
+  "version": "0.1.0",
+  "description": "Agent-friendly Cloudflare/wrangler account switcher — named auth profiles, zero prompts, zero dependencies, --json everywhere.",
+  "type": "module",
+  "bin": {
+    "cfswitch": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --target=node --outfile=dist/index.js && chmod +x dist/index.js",
+    "test": "bun run build && bash test/smoke.sh",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "cloudflare",
+    "wrangler",
+    "workers",
+    "pages",
+    "accounts",
+    "profiles",
+    "auth",
+    "switcher",
+    "cli",
+    "agents",
+    "ai-agents"
+  ],
+  "author": "Luke Igel",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dukeeagle/cfswitch.git"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
