@@ -8,6 +8,8 @@
   },
   "files": [
     "dist",
+    "skills",
+    "install-skill.sh",
     "README.md",
     "AGENTS.md",
     "LICENSE"

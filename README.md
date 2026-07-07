@@ -74,7 +74,20 @@ If you really want OAuth (e.g. no permission to create API tokens), `cfswitch lo
 
 ## For AI agents
 
-See [AGENTS.md](./AGENTS.md) — a compact, copy-pasteable contract for coding agents (Claude Code, Cursor, Codex, …). Drop it into your project or point your agent at `npx cfswitch help`, which is written to be sufficient on its own.
+Two options:
+
+**Install the skill** (recommended) — ships in [`skills/cfswitch/`](./skills/cfswitch/SKILL.md) and teaches Claude Code, Codex, and Cursor when and how to use cfswitch:
+
+```bash
+./install-skill.sh           # symlinks into ~/.agents/skills (hub, read by Cursor),
+                             # ~/.claude/skills and ~/.codex/skills chain through it
+./install-skill.sh --copy    # copy instead of symlink (survives deleting this repo)
+./install-skill.sh --uninstall
+```
+
+It never clobbers an existing real directory at any of those paths, and re-running is idempotent.
+
+**Or just the contract** — [AGENTS.md](./AGENTS.md) is a compact, copy-pasteable ruleset; drop it into your project or point your agent at `npx cfswitch help`, which is written to be sufficient on its own.
 
 ## Prior art
 
