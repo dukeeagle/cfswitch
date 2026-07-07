@@ -1,4 +1,12 @@
+<img src="assets/banner.png" alt="cfswitch: switch Cloudflare accounts. built for agents." width="100%">
+
 # cfswitch
+
+[![npm version](https://img.shields.io/npm/v/cfswitch-cli.svg)](https://www.npmjs.com/package/cfswitch-cli)
+[![CI](https://github.com/dukeeagle/cfswitch/actions/workflows/ci.yml/badge.svg)](https://github.com/dukeeagle/cfswitch/actions/workflows/ci.yml)
+[![npm provenance](https://img.shields.io/badge/provenance-attested-success)](https://www.npmjs.com/package/cfswitch-cli#provenance)
+[![license](https://img.shields.io/npm/l/cfswitch-cli.svg)](./LICENSE)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](./package.json)
 
 Switch Cloudflare / wrangler auth between multiple accounts. Built for AI agents and CI first, humans second.
 
