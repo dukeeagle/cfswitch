@@ -486,7 +486,10 @@ const WIZARD_PERMISSIONS = [
 
 function wizardUrl(tokenName: string): string {
   const perms = encodeURIComponent(JSON.stringify(WIZARD_PERMISSIONS));
-  return `https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=${perms}&accountId=%2A&zoneId=all&name=${encodeURIComponent(tokenName)}`;
+  // Route through the dashboard's ?to= redirector: unlike a direct
+  // /profile/api-tokens?... link, it survives the login flow, so users who
+  // aren't signed in yet still land on the pre-filled page after logging in.
+  return `https://dash.cloudflare.com/?to=/profile/api-tokens&permissionGroupKeys=${perms}&accountId=%2A&zoneId=all&name=${encodeURIComponent(tokenName)}`;
 }
 
 async function readClipboard(): Promise<string | null> {
@@ -550,7 +553,7 @@ async function cmdWizard(p: Parsed): Promise<void> {
   const err = (s: string) => process.stderr.write(s + "\n");
   err(`cfswitch wizard — opening the Cloudflare dashboard with a pre-filled token.`);
   err(``);
-  err(`  In the browser (log into the account you want first):`);
+  err(`  In the browser (if asked to log in, do — you'll land on the pre-filled page after):`);
   err(`    1. Review the pre-filled permissions → "Continue to summary"`);
   err(`    2. "Create Token"`);
   err(`    3. Click "Copy" on the token`);
