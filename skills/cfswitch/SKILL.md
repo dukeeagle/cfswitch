@@ -16,7 +16,7 @@ description: Switch Cloudflare/wrangler auth between multiple Cloudflare account
 5. Adding/rotating tokens: pipe, never argv — `printf '%s' "$TOKEN" | cfswitch add <name> --token-stdin --account-id <id>`. Re-adding a name updates it in place. Never print token values.
 6. If a token reaches several accounts, list them with `cfswitch accounts <name> --json` and pin the right one by re-adding with `--account-id`.
 7. To pin a whole session/CI job to one account, set `CFSWITCH_PROFILE=<name>` and drop the `-p` flags.
-8. No profiles configured at all → tell the user to run `cfswitch wizard` (pre-filled dashboard page + clipboard watch → auto-created profiles); manual fallback is creating tokens at https://dash.cloudflare.com/profile/api-tokens and `cfswitch add`. Do not create or roll tokens yourself.
+8. No profiles configured at all → tell the user to run `cfswitch wizard` **themselves, in their own interactive terminal** — do NOT run it from your sandbox: it opens their browser and watches their clipboard, so it only makes sense on the user's machine with the user present. It opens a pre-filled token-creation page; when they copy the token, verified + pinned profiles are created automatically. If they want the link without the watcher (e.g. to open on another machine), give them `cfswitch wizard --print-url`. Manual fallback: create tokens at https://dash.cloudflare.com/profile/api-tokens and `cfswitch add`. Do not create or roll tokens yourself.
 
 ## Command crib
 
