@@ -18,7 +18,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 // ---------------------------------------------------------------------------
 // Config storage
@@ -226,6 +226,9 @@ function parseArgs(argv: string[]): Parsed {
 const HELP = `cfswitch ${VERSION} — switch Cloudflare/wrangler auth between accounts. Built for agents: no prompts, --json output, clean exit codes.
 
 USAGE
+  cfswitch wizard [--name <token-name>]          # easiest: opens a pre-filled dashboard page,
+                                                 # watches clipboard, auto-creates pinned profiles
+  cfswitch wizard --print-url                    # just print the pre-filled token-creation URL
   cfswitch add <name> --token <T> [--account-id <ID>] [--note <text>]
   cfswitch add <name> --token-stdin [--account-id <ID>]   # echo $T | cfswitch add work --token-stdin
   cfswitch login <name> [--account-id <ID>]     # OAuth: isolated \`wrangler login\` for this profile
@@ -464,6 +467,147 @@ async function cmdExec(p: Parsed): Promise<void> {
   process.exit(code);
 }
 
+// ---------------------------------------------------------------------------
+// Wizard: pre-filled dashboard URL + clipboard watch → profiles appear on copy
+// ---------------------------------------------------------------------------
+
+const WIZARD_PERMISSIONS = [
+  { key: "workers_scripts", type: "edit" },
+  { key: "workers_kv_storage", type: "edit" },
+  { key: "workers_routes", type: "edit" },
+  { key: "workers_r2", type: "edit" },
+  { key: "page", type: "edit" },
+  { key: "d1", type: "edit" },
+  { key: "workers_tail", type: "read" },
+  { key: "account_settings", type: "read" },
+  { key: "memberships", type: "read" },
+  { key: "user_details", type: "read" },
+];
+
+function wizardUrl(tokenName: string): string {
+  const perms = encodeURIComponent(JSON.stringify(WIZARD_PERMISSIONS));
+  return `https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=${perms}&accountId=%2A&zoneId=all&name=${encodeURIComponent(tokenName)}`;
+}
+
+async function readClipboard(): Promise<string | null> {
+  const attempts: Array<[string, string[]]> =
+    process.platform === "darwin"
+      ? [["pbpaste", []]]
+      : process.platform === "win32"
+        ? [["powershell", ["-NoProfile", "-Command", "Get-Clipboard"]]]
+        : [
+            ["wl-paste", ["--no-newline"]],
+            ["xclip", ["-selection", "clipboard", "-o"]],
+            ["xsel", ["--clipboard", "--output"]],
+          ];
+  for (const [cmd, args] of attempts) {
+    const text = await new Promise<string | null>((resolve) => {
+      const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "ignore"] });
+      let buf = "";
+      child.stdout.on("data", (d) => (buf += d));
+      child.on("error", () => resolve(null));
+      child.on("close", (code) => resolve(code === 0 ? buf : null));
+    });
+    if (text !== null) return text;
+  }
+  return null;
+}
+
+function openBrowser(url: string): void {
+  const [cmd, args]: [string, string[]] =
+    process.platform === "darwin"
+      ? ["open", [url]]
+      : process.platform === "win32"
+        ? ["cmd", ["/c", "start", "", url]]
+        : ["xdg-open", [url]];
+  spawn(cmd, args, { stdio: "ignore", detached: true }).unref();
+}
+
+function slugifyAccountName(name: string): string {
+  return (
+    name
+      .replace(/'s Account$/i, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32) || "account"
+  );
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function cmdWizard(p: Parsed): Promise<void> {
+  const tokenName = (p.flags["name"] as string | undefined) ?? "cfswitch";
+  const url = wizardUrl(tokenName);
+  if (p.flags["print-url"]) {
+    out(url);
+    return;
+  }
+  if (await readClipboard() === null) {
+    fail("no clipboard tool available (pbpaste/wl-paste/xclip/xsel). Use `cfswitch wizard --print-url` and add tokens manually.");
+  }
+
+  const err = (s: string) => process.stderr.write(s + "\n");
+  err(`cfswitch wizard — opening the Cloudflare dashboard with a pre-filled token.`);
+  err(``);
+  err(`  In the browser (log into the account you want first):`);
+  err(`    1. Review the pre-filled permissions → "Continue to summary"`);
+  err(`    2. "Create Token"`);
+  err(`    3. Click "Copy" on the token`);
+  err(``);
+  err(`  Watching your clipboard — profiles are created the moment you copy. Ctrl-C to stop.`);
+  err(``);
+  if (!p.flags["no-browser"]) openBrowser(url);
+  else err(`  (--no-browser: open this yourself)\n  ${url}\n`);
+
+  const seen = new Set<string>();
+  const initial = (await readClipboard())?.trim();
+  if (initial) seen.add(initial);
+  const cfg0 = await loadConfig();
+  const knownTokens = new Set(Object.values(cfg0.profiles).map((pr) => pr.token).filter(Boolean));
+  let created = 0;
+
+  const deadline = Date.now() + 15 * 60 * 1000;
+  while (Date.now() < deadline) {
+    await sleep(1500);
+    const clip = (await readClipboard())?.trim();
+    if (!clip || seen.has(clip)) continue;
+    seen.add(clip);
+    if (!/^[A-Za-z0-9_.-]{40,}$/.test(clip) || knownTokens.has(clip)) continue;
+
+    const body = await cfApi("/user/tokens/verify", clip).catch(() => null);
+    if (body?.success !== true || body?.result?.status !== "active") continue;
+    err(`token detected and verified — discovering accounts…`);
+
+    const acctBody = await cfApi("/accounts", clip).catch(() => null);
+    const accounts: Array<{ id: string; name: string }> = (acctBody?.result ?? []).map((a: any) => ({
+      id: a.id,
+      name: a.name,
+    }));
+    const cfg = await loadConfig();
+    if (accounts.length === 0) {
+      err(`warning: token verified but can list no accounts; storing unpinned as "unnamed-${body.result.id.slice(0, 6)}".`);
+      cfg.profiles[`unnamed-${body.result.id.slice(0, 6)}`] = { token: clip };
+    } else {
+      for (const a of accounts) {
+        let slug = slugifyAccountName(a.name);
+        while (cfg.profiles[slug] && cfg.profiles[slug]!.accountId !== a.id) slug += "-2";
+        cfg.profiles[slug] = { token: clip, accountId: a.id, note: a.name };
+        if (!cfg.default) cfg.default = slug;
+        err(`  ✓ profile "${slug}" → ${a.name} (${a.id})`);
+        created++;
+      }
+    }
+    knownTokens.add(clip);
+    await saveConfig(cfg);
+    err(``);
+    err(`Saved. For another account: switch accounts in the dashboard (or log out/in) and repeat — still watching.`);
+    err(`Done? Ctrl-C, then check with: cfswitch list`);
+  }
+  err(created > 0 ? `wizard timed out after 15 minutes; ${created} profile(s) created.` : `wizard timed out after 15 minutes; nothing created.`);
+  process.exit(created > 0 ? 0 : 1);
+}
+
 async function cmdWrangler(argv: string[]): Promise<void> {
   // Parse only our own leading flags (-p/--profile); pass everything else through verbatim.
   let profileName: string | undefined;
@@ -514,6 +658,8 @@ async function main(): Promise<void> {
   switch (command) {
     case "add":
       return cmdAdd(p);
+    case "wizard":
+      return cmdWizard(p);
     case "login":
       return cmdLogin(p);
     case "list":

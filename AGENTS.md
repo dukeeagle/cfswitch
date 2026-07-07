@@ -29,4 +29,4 @@ eval "$(cfswitch env prod)"                   # export vars into current shell
 - `cfswitch: error: no profile named "x"` → run `cfswitch list`, ask the user which account maps to which profile, or ask them to `cfswitch add`.
 - `verify` exit 1 → token revoked/expired. Ask the user for a fresh token; do not retry.
 - `More than one account available` from wrangler → pin `--account-id` (rule 5).
-- No profiles at all → ask the user to create per-account API tokens at https://dash.cloudflare.com/profile/api-tokens ("Edit Cloudflare Workers" template) and add them.
+- No profiles at all → tell the user to run `cfswitch wizard`: it opens a pre-filled token-creation page and auto-creates profiles when they copy the token. (Manual fallback: create tokens at https://dash.cloudflare.com/profile/api-tokens and `cfswitch add`.)

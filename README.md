@@ -21,6 +21,16 @@ npx cfswitch help
 
 ## Quick start
 
+### The wizard (easiest)
+
+```bash
+cfswitch wizard
+```
+
+Opens the Cloudflare dashboard with a **pre-filled token** (Workers, Pages, KV, R2, D1, routes) and watches your clipboard. You log in, click **Continue to summary → Create Token → Copy** — and cfswitch instantly verifies the token, discovers its accounts, and creates pinned profiles. Switch dashboard accounts and repeat for each; Ctrl-C when done. Use `cfswitch wizard --print-url` if you just want the pre-filled URL (e.g. to open on another machine).
+
+### Manual
+
 Create an API token for each account at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) (the **"Edit Cloudflare Workers"** template covers Workers + Pages deploys). Then:
 
 ```bash
@@ -46,6 +56,7 @@ cfswitch wrangler d1 list
 
 | Command | What it does |
 |---|---|
+| `wizard [--name <s>] [--print-url] [--no-browser]` | Guided setup: pre-filled dashboard URL + clipboard watch → auto-created pinned profiles. |
 | `add <name> --token <T> [--account-id <ID>] [--note <s>]` | Save/update a token profile. Also accepts `--token-stdin` or `$CFSWITCH_TOKEN`. |
 | `login <name>` | OAuth alternative: runs `wrangler login` inside an **isolated config dir**, so multiple OAuth sessions coexist. |
 | `list [--json]` | List profiles. Tokens are never shown. |
