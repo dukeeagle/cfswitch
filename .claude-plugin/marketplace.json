@@ -8,8 +8,8 @@
     {
       "name": "cfswitch",
       "source": "./",
-      "description": "Switch Cloudflare/wrangler auth between multiple accounts — agent-first CLI with named token profiles",
-      "version": "0.2.0",
+      "description": "Switch Cloudflare/wrangler auth between multiple accounts. Agent-first CLI with named token profiles.",
+      "version": "0.2.1",
       "author": {
         "name": "Luke Igel"
       }

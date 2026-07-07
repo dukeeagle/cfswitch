@@ -18,7 +18,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 
 // ---------------------------------------------------------------------------
 // Config storage
@@ -80,7 +80,7 @@ function getProfile(cfg: Config, name: string): Profile {
   const p = cfg.profiles[name];
   if (!p) {
     fail(
-      `no profile named "${name}". Available: ${Object.keys(cfg.profiles).join(", ") || "(none — run \`cfswitch add\`)"}`
+      `no profile named "${name}". Available: ${Object.keys(cfg.profiles).join(", ") || "(none; run \`cfswitch add\`)"}`
     );
   }
   return p!;
@@ -223,7 +223,7 @@ function parseArgs(argv: string[]): Parsed {
 // Commands
 // ---------------------------------------------------------------------------
 
-const HELP = `cfswitch ${VERSION} — switch Cloudflare/wrangler auth between accounts. Built for agents: no prompts, --json output, clean exit codes.
+const HELP = `cfswitch ${VERSION}: switch Cloudflare/wrangler auth between accounts. Built for agents: no prompts, --json output, clean exit codes.
 
 USAGE
   cfswitch wizard [--name <token-name>]          # easiest: opens a pre-filled dashboard page,
@@ -413,7 +413,7 @@ async function cmdVerify(p: Parsed): Promise<void> {
     out(`profile "${name}": token is active${result?.expires_on ? ` (expires ${result.expires_on})` : ""}`);
   } else {
     const msgs = (body?.errors ?? []).map((e: any) => e.message).join("; ");
-    fail(`profile "${name}": token INVALID${msgs ? ` — ${msgs}` : ""}`);
+    fail(`profile "${name}": token INVALID${msgs ? `: ${msgs}` : ""}`);
   }
 }
 
@@ -432,7 +432,7 @@ async function cmdAccounts(p: Parsed): Promise<void> {
     return;
   }
   if (accounts.length === 0) {
-    out("(token can access no accounts — it may be user-scoped only)");
+    out("(token can access no accounts; it may be user-scoped only)");
     return;
   }
   for (const a of accounts) out(`${a.id}  ${a.name}`);
@@ -551,14 +551,14 @@ async function cmdWizard(p: Parsed): Promise<void> {
   }
 
   const err = (s: string) => process.stderr.write(s + "\n");
-  err(`cfswitch wizard — opening the Cloudflare dashboard with a pre-filled token.`);
+  err(`cfswitch wizard: opening the Cloudflare dashboard with a pre-filled token.`);
   err(``);
-  err(`  In the browser (if asked to log in, do — you'll land on the pre-filled page after):`);
+  err(`  In the browser (if asked to log in, do; you'll land on the pre-filled page after):`);
   err(`    1. Review the pre-filled permissions → "Continue to summary"`);
   err(`    2. "Create Token"`);
   err(`    3. Click "Copy" on the token`);
   err(``);
-  err(`  Watching your clipboard — profiles are created the moment you copy. Ctrl-C to stop.`);
+  err(`  Watching your clipboard. Profiles are created the moment you copy. Ctrl-C to stop.`);
   err(``);
   if (!p.flags["no-browser"]) openBrowser(url);
   else err(`  (--no-browser: open this yourself)\n  ${url}\n`);
@@ -580,7 +580,7 @@ async function cmdWizard(p: Parsed): Promise<void> {
 
     const body = await cfApi("/user/tokens/verify", clip).catch(() => null);
     if (body?.success !== true || body?.result?.status !== "active") continue;
-    err(`token detected and verified — discovering accounts…`);
+    err(`token detected and verified; discovering accounts...`);
 
     const acctBody = await cfApi("/accounts", clip).catch(() => null);
     const accounts: Array<{ id: string; name: string }> = (acctBody?.result ?? []).map((a: any) => ({
@@ -604,7 +604,7 @@ async function cmdWizard(p: Parsed): Promise<void> {
     knownTokens.add(clip);
     await saveConfig(cfg);
     err(``);
-    err(`Saved. For another account: switch accounts in the dashboard (or log out/in) and repeat — still watching.`);
+    err(`Saved. For another account: switch accounts in the dashboard (or log out/in) and repeat; still watching.`);
     err(`Done? Ctrl-C, then check with: cfswitch list`);
   }
   err(created > 0 ? `wizard timed out after 15 minutes; ${created} profile(s) created.` : `wizard timed out after 15 minutes; nothing created.`);
